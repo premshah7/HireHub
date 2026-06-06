@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/job_controller.dart';
 import '../widgets/job_card.dart';
 import '../widgets/custom_search_bar.dart';
+import '../widgets/no_jobs_found.dart';
 
 class JobDashboardScreen extends StatelessWidget {
   const JobDashboardScreen({super.key});
@@ -91,36 +92,9 @@ class JobDashboardScreen extends StatelessWidget {
 
               // Empty search
               if (controller.filteredJobs.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 48,
-                          color: isDark ? Colors.grey[600] : Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No results found',
-                          style: theme.textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Try adjusting your search terms.',
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                        OutlinedButton(
-                          onPressed: controller.clearSearch,
-                          child: const Text('Clear Search'),
-                        ),
-                      ],
-                    ),
-                  ),
+                return NoJobsFound(
+                  onClearSearch: controller.clearSearch,
+                  onBrowseAll: controller.clearSearch,
                 );
               }
 

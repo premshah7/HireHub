@@ -3,35 +3,25 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 import '../models/job_model.dart';
 import '../utils/html_parser.dart';
+import '../services/translation_service.dart';
 
 class JobDetailScreen extends StatelessWidget {
   final JobModel job;
 
   const JobDetailScreen({super.key, required this.job});
 
-  static const List<Color> _avatarColors = [
-    Color(0xFF0D9488), // Teal
-    Color(0xFF7C3AED), // Violet
-    Color(0xFF2563EB), // Blue
-    Color(0xFFEA580C), // Orange
-    Color(0xFFDB2777), // Pink
-    Color(0xFF059669), // Emerald
-    Color(0xFFD97706), // Amber
-    Color(0xFF4F46E5), // Indigo
-  ];
-
-  Gradient _getCompanyGradient(String companyName) {
-    final int hash = companyName.hashCode;
-    final int index1 = hash.abs() % _avatarColors.length;
-    final int index2 = (hash.abs() + 2) % _avatarColors.length;
-    return LinearGradient(
-      colors: [
-        _avatarColors[index1],
-        _avatarColors[index2 == index1 ? (index1 + 1) % _avatarColors.length : index2],
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
+  Color _getAvatarColor(String name) {
+    const colors = [
+      Color(0xFF312E81),
+      Color(0xFF1E3A5F),
+      Color(0xFF3730A3),
+      Color(0xFF1E40AF),
+      Color(0xFF4338CA),
+      Color(0xFF0F4C75),
+      Color(0xFF374151),
+      Color(0xFF4C1D95),
+    ];
+    return colors[name.hashCode.abs() % colors.length];
   }
 
   Future<void> _launchUrl() async {
@@ -40,28 +30,27 @@ class JobDetailScreen extends StatelessWidget {
         'Unavailable',
         'No application link was provided for this job.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.amber[800],
+        backgroundColor: const Color(0xFF475569),
         colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 10,
       );
       return;
     }
 
     final Uri url = Uri.parse(job.url);
     try {
-      final bool launched = await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
-      if (!launched) {
-        throw 'Failed to open web browser';
-      }
+      final bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched) throw 'Failed to open browser';
     } catch (e) {
       Get.snackbar(
-        'Error Launching Link',
-        'Could not open the job application link. Please check your browser.',
+        'Error',
+        'Could not open the application link.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[600],
+        backgroundColor: const Color(0xFFDC2626),
         colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 10,
       );
     }
   }
@@ -72,57 +61,119 @@ class JobDetailScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final companyInitial = job.companyName.isNotEmpty ? job.companyName[0].toUpperCase() : 'J';
 
+    // Reactive translation state
+    final isTranslated = false.obs;
+    final isTranslating = false.obs;
+    final translatedText = ''.obs;
+
+    Future<void> handleTranslate() async {
+      if (isTranslating.value) return;
+
+      if (isTranslated.value) {
+        // Toggle back to original
+        isTranslated.value = false;
+        return;
+      }
+
+      // Translate if not already translated
+      if (translatedText.value.isNotEmpty) {
+        isTranslated.value = true;
+        return;
+      }
+
+      isTranslating.value = true;
+      try {
+        final result = await TranslationService.translateToEnglish(job.description);
+        translatedText.value = result;
+        isTranslated.value = true;
+      } catch (e) {
+        Get.snackbar(
+          'Translation Failed',
+          'Could not translate the description. Please try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFDC2626),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 10,
+        );
+      } finally {
+        isTranslating.value = false;
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Job Details'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Get.back(),
         ),
+        actions: [
+          Obx(() => IconButton(
+                icon: Icon(
+                  isTranslated.value ? Icons.translate_rounded : Icons.translate_rounded,
+                  color: isTranslated.value
+                      ? theme.colorScheme.primary
+                      : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                  size: 22,
+                ),
+                tooltip: isTranslated.value ? 'Show Original' : 'Translate to English',
+                onPressed: handleTranslate,
+              )),
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              color: theme.colorScheme.primary,
+              size: 22,
+            ),
+            tooltip: 'Toggle Theme',
+            onPressed: () {
+              Get.changeThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: Column(
         children: [
-          // Scrollable Job Information
+          // Scrollable content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Company logo, job title, and company name header card
+                  // Header
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 60,
-                        height: 60,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          gradient: _getCompanyGradient(job.companyName),
-                          borderRadius: BorderRadius.circular(16),
+                          color: _getAvatarColor(job.companyName),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           companyInitial,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               job.title,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                height: 1.2,
-                              ),
+                              style: theme.textTheme.titleLarge?.copyWith(height: 1.25),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Text(
                               job.companyName,
                               style: theme.textTheme.bodyLarge?.copyWith(
@@ -137,129 +188,199 @@ class JobDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Metadata list: location, date, remote
+                  // Metadata
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(12),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     child: Column(
                       children: [
                         _buildMetaRow(
-                          icon: Icons.location_on_rounded,
+                          icon: Icons.location_on_outlined,
                           text: job.location,
                           theme: theme,
                           isDark: isDark,
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: Divider(height: 1, thickness: 0.5, color: Colors.grey),
+                        Divider(
+                          height: 20,
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                         ),
                         _buildMetaRow(
-                          icon: Icons.access_time_filled_rounded,
+                          icon: Icons.schedule_outlined,
                           text: 'Posted ${job.timeAgo}',
                           theme: theme,
                           isDark: isDark,
                         ),
                         if (job.remote) ...[
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8.0),
-                            child: Divider(height: 1, thickness: 0.5, color: Colors.grey),
+                          Divider(
+                            height: 20,
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                           ),
                           _buildMetaRow(
-                            icon: Icons.wifi_rounded,
-                            text: 'Remote Work Allowed',
+                            icon: Icons.laptop_mac_rounded,
+                            text: 'Remote position',
                             theme: theme,
                             isDark: isDark,
-                            accentColor: theme.colorScheme.primary,
+                            highlight: true,
                           ),
                         ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Tags Wrap
+                  // Tags
                   if (job.tags.isNotEmpty) ...[
-                    Text(
-                      'Keywords & Tags',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('Skills & Tags', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: job.tags.map((tag) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                            ),
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             tag,
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: theme.colorScheme.primary,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                   ],
 
-                  // Description Title
-                  Text(
-                    'Job Description',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // Description header with translate toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('About This Role', style: theme.textTheme.titleLarge),
+                      Obx(() => TextButton.icon(
+                            onPressed: handleTranslate,
+                            icon: isTranslating.value
+                                ? SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          theme.colorScheme.primary),
+                                    ),
+                                  )
+                                : Icon(
+                                    isTranslated.value
+                                        ? Icons.language_rounded
+                                        : Icons.translate_rounded,
+                                    size: 16,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                            label: Text(
+                              isTranslating.value
+                                  ? 'Translating...'
+                                  : isTranslated.value
+                                      ? 'Show Original'
+                                      : 'Translate',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                          )),
+                    ],
                   ),
-                  const SizedBox(height: 12),
 
-                  // Job HTML description parser
-                  ...HtmlParser.parse(job.description, theme),
-                  
+                  // Translated banner
+                  Obx(() => isTranslated.value
+                      ? Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                                : const Color(0xFFEEF2FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle_outline_rounded,
+                                  size: 16, color: theme.colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Translated to English',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink()),
+                  const SizedBox(height: 4),
+
+                  // Description content - original or translated
+                  Obx(() {
+                    if (isTranslated.value && translatedText.value.isNotEmpty) {
+                      return Text(
+                        translatedText.value,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                          height: 1.6,
+                        ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: HtmlParser.parse(job.description, theme),
+                    );
+                  }),
                   const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
 
-          // Bottom sticky CTA action bar
+          // Bottom CTA
           Container(
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
-              top: 16,
-              bottom: Get.mediaQuery.padding.bottom > 0 ? Get.mediaQuery.padding.bottom : 16,
+              top: 14,
+              bottom: Get.mediaQuery.padding.bottom > 0 ? Get.mediaQuery.padding.bottom : 14,
             ),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               border: Border(
                 top: BorderSide(
                   color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  width: 1,
                 ),
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _launchUrl,
-                    icon: const Icon(Icons.launch_rounded, size: 20),
-                    label: const Text('Apply on Website'),
-                  ),
-                ),
-              ],
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _launchUrl,
+                child: const Text('Apply Now'),
+              ),
             ),
           ),
         ],
@@ -272,22 +393,26 @@ class JobDetailScreen extends StatelessWidget {
     required String text,
     required ThemeData theme,
     required bool isDark,
-    Color? accentColor,
+    bool highlight = false,
   }) {
     return Row(
       children: [
         Icon(
           icon,
-          size: 20,
-          color: accentColor ?? (isDark ? Colors.grey[400] : Colors.grey[600]),
+          size: 18,
+          color: highlight
+              ? theme.colorScheme.primary
+              : (isDark ? Colors.grey[500] : Colors.grey[500]),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: accentColor ?? (isDark ? Colors.grey[200] : Colors.grey[800]),
-              fontWeight: accentColor != null ? FontWeight.bold : FontWeight.normal,
+              color: highlight
+                  ? theme.colorScheme.primary
+                  : (isDark ? Colors.grey[300] : Colors.grey[700]),
+              fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ),

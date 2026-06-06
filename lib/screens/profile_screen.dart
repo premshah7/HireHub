@@ -13,189 +13,131 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-        ),
+        title: const Text('Account'),
         actions: [
           IconButton(
             icon: Icon(
               isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
               color: theme.colorScheme.primary,
+              size: 22,
             ),
             tooltip: 'Toggle Theme',
             onPressed: () {
-              Get.changeThemeMode(
-                isDark ? ThemeMode.light : ThemeMode.dark,
-              );
+              Get.changeThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-            // Profile Avatar
+            // Avatar
             Container(
-              width: 96,
-              height: 96,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D9488), Color(0xFF7C3AED)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.person_rounded,
-                size: 48,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.person_rounded, size: 40, color: Colors.white),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-            // Name
             Text(
               'Job Seeker',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 4),
             Text(
               'seeker@hirehub.app',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
+              style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
 
-            // Stats Row
+            // Stats
             Obx(() => Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(16),
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStat(
-                        context,
-                        count: controller.jobs.length.toString(),
-                        label: 'Jobs Found',
-                        icon: Icons.work_rounded,
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              controller.jobs.length.toString(),
+                              style: theme.textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text('Jobs Found', style: theme.textTheme.bodyMedium),
+                          ],
+                        ),
                       ),
                       Container(
                         width: 1,
-                        height: 40,
-                        color: isDark ? Colors.grey[700] : Colors.grey[300],
+                        height: 36,
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                       ),
-                      _buildStat(
-                        context,
-                        count: controller.bookmarkedJobSlugs.length.toString(),
-                        label: 'Saved',
-                        icon: Icons.favorite_rounded,
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              controller.bookmarkedJobSlugs.length.toString(),
+                              style: theme.textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text('Saved', style: theme.textTheme.bodyMedium),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 )),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
 
-            // Settings options
-            _buildSettingsTile(
-              context,
-              icon: Icons.notifications_outlined,
-              title: 'Notifications',
-              subtitle: 'Job alerts and updates',
-              isDark: isDark,
-            ),
-            _buildSettingsTile(
-              context,
-              icon: Icons.description_outlined,
-              title: 'My Resume',
-              subtitle: 'Upload and manage your CV',
-              isDark: isDark,
-            ),
-            _buildSettingsTile(
-              context,
-              icon: Icons.help_outline_rounded,
-              title: 'Help & Support',
-              subtitle: 'FAQs and contact us',
-              isDark: isDark,
-            ),
-            _buildSettingsTile(
-              context,
-              icon: Icons.info_outline_rounded,
-              title: 'About HireHub',
-              subtitle: 'Version 1.0.0',
-              isDark: isDark,
-            ),
+            // Settings
+            _buildTile(context, Icons.notifications_none_rounded, 'Notifications', isDark),
+            _buildTile(context, Icons.description_outlined, 'My Resume', isDark),
+            _buildTile(context, Icons.help_outline_rounded, 'Help & Support', isDark),
+            _buildTile(context, Icons.info_outline_rounded, 'About HireHub', isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStat(BuildContext context,
-      {required String count, required String label, required IconData icon}) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Icon(icon, color: theme.colorScheme.primary, size: 24),
-        const SizedBox(height: 8),
-        Text(
-          count,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSettingsTile(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required String subtitle,
-      required bool isDark}) {
+  Widget _buildTile(BuildContext context, IconData icon, String title, bool isDark) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
       ),
       child: ListTile(
-        leading: Icon(icon, color: theme.colorScheme.primary),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color: isDark ? Colors.grey[500] : Colors.grey[500],
-            fontSize: 13,
-          ),
-        ),
+        leading: Icon(icon, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 22),
+        title: Text(title, style: theme.textTheme.titleMedium),
         trailing: Icon(
           Icons.chevron_right_rounded,
           color: isDark ? Colors.grey[600] : Colors.grey[400],
+          size: 20,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        dense: true,
       ),
     );
   }

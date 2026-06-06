@@ -15,101 +15,73 @@ class JobDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.work_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'HireHub',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-            ),
-          ],
-        ),
+        title: const Text('HireHub'),
         actions: [
           IconButton(
             icon: Icon(
               isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
               color: theme.colorScheme.primary,
+              size: 22,
             ),
             tooltip: 'Toggle Theme',
             onPressed: () {
-              Get.changeThemeMode(
-                isDark ? ThemeMode.light : ThemeMode.dark,
-              );
+              Get.changeThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
-          // 1. Search bar at top
+          // Search bar
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: CustomSearchBar(),
           ),
 
-          // Main body content reactively controlled by GetX Obx
+          // Content
           Expanded(
             child: Obx(() {
-              // 3. Show loading state: CircularProgressIndicator
+              // Loading
               if (controller.loading.value) {
                 return Center(
                   child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
                     valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                   ),
                 );
               }
 
-              // 4. Show error state: "Something went wrong" & Retry button
+              // Error
               if (controller.error.value && controller.jobs.isEmpty) {
                 return Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(32.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.error_outline_rounded,
-                          size: 60,
-                          color: theme.colorScheme.error,
+                          Icons.cloud_off_rounded,
+                          size: 48,
+                          color: isDark ? Colors.grey[600] : Colors.grey[400],
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Something went wrong',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
+                        Text(
+                          'Unable to load jobs',
+                          style: theme.textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           controller.errorMessage.value.isNotEmpty
                               ? controller.errorMessage.value
-                              : 'Failed to retrieve job listings.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
+                              : 'Please check your connection and try again.',
+                          style: theme.textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
+                        const SizedBox(height: 20),
+                        ElevatedButton(
                           onPressed: controller.retry,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Try Again'),
+                          child: const Text('Try Again'),
                         ),
                       ],
                     ),
@@ -117,56 +89,48 @@ class JobDashboardScreen extends StatelessWidget {
                 );
               }
 
-              // Empty Search Result Screen
+              // Empty search
               if (controller.filteredJobs.isEmpty) {
                 return Center(
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off_rounded,
-                            size: 64,
-                            color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No Jobs Found',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Try search keywords matching title or company.',
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 20),
-                          OutlinedButton(
-                            onPressed: controller.clearSearch,
-                            child: const Text('Clear Filter'),
-                          ),
-                        ],
-                      ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: isDark ? Colors.grey[600] : Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No results found',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Try adjusting your search terms.',
+                          style: theme.textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        OutlinedButton(
+                          onPressed: controller.clearSearch,
+                          child: const Text('Clear Search'),
+                        ),
+                      ],
                     ),
                   ),
                 );
               }
 
-              // 5. Show jobs using ListView.builder
+              // Job list
               return RefreshIndicator(
                 onRefresh: () => controller.fetchJobs(isRefresh: true),
                 color: theme.colorScheme.primary,
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                   itemCount: controller.filteredJobs.length,
                   itemBuilder: (context, index) {
                     final job = controller.filteredJobs[index];

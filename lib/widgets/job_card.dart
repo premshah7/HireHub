@@ -9,29 +9,18 @@ class JobCard extends StatelessWidget {
 
   const JobCard({super.key, required this.job});
 
-  static const List<Color> _avatarColors = [
-    Color(0xFF0D9488), // Teal
-    Color(0xFF7C3AED), // Violet
-    Color(0xFF2563EB), // Blue
-    Color(0xFFEA580C), // Orange
-    Color(0xFFDB2777), // Pink
-    Color(0xFF059669), // Emerald
-    Color(0xFFD97706), // Amber
-    Color(0xFF4F46E5), // Indigo
-  ];
-
-  Gradient _getCompanyGradient(String companyName) {
-    final int hash = companyName.hashCode;
-    final int index1 = hash.abs() % _avatarColors.length;
-    final int index2 = (hash.abs() + 2) % _avatarColors.length;
-    return LinearGradient(
-      colors: [
-        _avatarColors[index1],
-        _avatarColors[index2 == index1 ? (index1 + 1) % _avatarColors.length : index2],
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
+  Color _getAvatarColor(String name) {
+    const colors = [
+      Color(0xFF312E81), // Indigo 900
+      Color(0xFF1E3A5F), // Navy
+      Color(0xFF3730A3), // Indigo 800
+      Color(0xFF1E40AF), // Blue 800
+      Color(0xFF4338CA), // Indigo 700
+      Color(0xFF0F4C75), // Dark Teal
+      Color(0xFF374151), // Grey 700
+      Color(0xFF4C1D95), // Violet 900
+    ];
+    return colors[name.hashCode.abs() % colors.length];
   }
 
   @override
@@ -41,14 +30,14 @@ class JobCard extends StatelessWidget {
     final companyInitial = job.companyName.isNotEmpty ? job.companyName[0].toUpperCase() : 'J';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () {
             Get.to(
               () => JobDetailScreen(job: job),
-              transition: Transition.rightToLeftWithFade,
+              transition: Transition.cupertino,
               duration: const Duration(milliseconds: 300),
             );
           },
@@ -61,26 +50,26 @@ class JobCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Dynamic colorful avatar for company placeholder
+                    // Solid professional avatar
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        gradient: _getCompanyGradient(job.companyName),
-                        borderRadius: BorderRadius.circular(12),
+                        color: _getAvatarColor(job.companyName),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         companyInitial,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Title and Company Name
+                    // Title and Company
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,13 +77,13 @@ class JobCard extends StatelessWidget {
                           Text(
                             job.title,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               height: 1.2,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             job.companyName,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -105,15 +94,18 @@ class JobCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Favorite Heart Icon
+                    const SizedBox(width: 4),
+                    // Bookmark Icon
                     Obx(() {
                       final controller = Get.find<JobController>();
                       final isBookmarked = controller.isBookmarked(job.slug);
                       return IconButton(
                         icon: Icon(
-                          isBookmarked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: isBookmarked ? Colors.redAccent : Colors.grey[400],
+                          isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                          color: isBookmarked
+                              ? theme.colorScheme.primary
+                              : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                          size: 22,
                         ),
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
@@ -127,21 +119,19 @@ class JobCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Location and Remote Badge
+                // Location row
                 Row(
                   children: [
                     Icon(
                       Icons.location_on_outlined,
-                      size: 16,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      size: 15,
+                      color: isDark ? Colors.grey[500] : Colors.grey[500],
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         job.location,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
+                        style: theme.textTheme.bodyMedium,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -149,86 +139,68 @@ class JobCard extends StatelessWidget {
                     if (job.remote) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          color: isDark
+                              ? const Color(0xFF1E3A5F)
+                              : const Color(0xFFEEF2FF),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.wifi_rounded,
-                              size: 12,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Remote',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontSize: 10,
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          'Remote',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 12),
 
-                // Tags (Horizontal wrapping chips)
+                // Tags
                 if (job.tags.isNotEmpty) ...[
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: job.tags.take(4).map((tag) {
+                    children: job.tags.take(3).map((tag) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           tag,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
                 ],
 
-                // Footer Row: Time Posted
+                const SizedBox(height: 10),
+                // Footer: Time
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: isDark ? Colors.grey[500] : Colors.grey[500],
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          job.timeAgo,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 12,
-                            color: isDark ? Colors.grey[500] : Colors.grey[500],
-                          ),
-                        ),
-                      ],
+                    Text(
+                      job.timeAgo,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      ),
                     ),
                     Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 18,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: isDark ? Colors.grey[600] : Colors.grey[400],
                     ),
                   ],
                 ),

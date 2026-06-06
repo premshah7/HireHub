@@ -14,35 +14,23 @@ class WishlistScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 22),
-            const SizedBox(width: 10),
-            const Text(
-              'Wishlist',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-            ),
-          ],
-        ),
+        title: const Text('Saved Jobs'),
         actions: [
           IconButton(
             icon: Icon(
               isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
               color: theme.colorScheme.primary,
+              size: 22,
             ),
             tooltip: 'Toggle Theme',
             onPressed: () {
-              Get.changeThemeMode(
-                isDark ? ThemeMode.light : ThemeMode.dark,
-              );
+              Get.changeThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: Obx(() {
-        // Filter jobs that are bookmarked
         final wishlistJobs = controller.jobs
             .where((job) => controller.isBookmarked(job.slug))
             .toList();
@@ -55,24 +43,19 @@ class WishlistScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.favorite_border_rounded,
-                    size: 72,
-                    color: isDark ? Colors.grey[600] : Colors.grey[300],
+                    Icons.bookmark_border_rounded,
+                    size: 48,
+                    color: isDark ? Colors.grey[600] : Colors.grey[400],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Text(
-                    'No Saved Jobs Yet',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'No saved jobs',
+                    style: theme.textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
-                    'Tap the heart icon on any job to save it here for later.',
-                    style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      fontSize: 15,
-                    ),
+                    'Bookmark jobs from the dashboard to review them later.',
+                    style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -83,7 +66,7 @@ class WishlistScreen extends StatelessWidget {
 
         return ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           itemCount: wishlistJobs.length,
           itemBuilder: (context, index) {
             return JobCard(job: wishlistJobs[index]);

@@ -79,7 +79,24 @@ class ProfileScreen extends StatelessWidget {
                               style: theme.textTheme.headlineMedium,
                             ),
                             const SizedBox(height: 2),
-                            Text('Jobs Found', style: theme.textTheme.bodyMedium),
+                            Text('Jobs', style: theme.textTheme.bodyMedium),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 36,
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              controller.appliedJobSlugs.length.toString(),
+                              style: theme.textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text('Applied', style: theme.textTheme.bodyMedium),
                           ],
                         ),
                       ),

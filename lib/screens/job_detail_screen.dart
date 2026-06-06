@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../models/job_model.dart';
 import '../utils/html_parser.dart';
 import '../services/translation_service.dart';
+import '../controllers/job_controller.dart';
 
 class JobDetailScreen extends StatelessWidget {
   final JobModel job;
@@ -42,6 +43,9 @@ class JobDetailScreen extends StatelessWidget {
     try {
       final bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
       if (!launched) throw 'Failed to open browser';
+      // Mark as applied after successful launch
+      final controller = Get.find<JobController>();
+      controller.applyForJob(job.slug);
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -375,13 +379,28 @@ class JobDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _launchUrl,
-                child: const Text('Apply Now'),
-              ),
-            ),
+            child: Obx(() {
+              final controller = Get.find<JobController>();
+              final applied = controller.isApplied(job.slug);
+              return SizedBox(
+                width: double.infinity,
+                child: applied
+                    ? OutlinedButton.icon(
+                        onPressed: _launchUrl,
+                        icon: const Icon(Icons.check_circle_rounded, size: 18),
+                        label: const Text('Applied — View Again'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF16A34A),
+                          side: const BorderSide(color: Color(0xFF16A34A)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: _launchUrl,
+                        child: const Text('Apply Now'),
+                      ),
+              );
+            }),
           ),
         ],
       ),

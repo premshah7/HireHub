@@ -42,7 +42,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
         onChanged: _controller.searchJobs,
         style: theme.textTheme.bodyLarge,
         decoration: InputDecoration(
-          hintText: 'Search by title or company...',
+          hintText: 'Search by title, company, or location...',
           hintStyle: TextStyle(
             color: isDark ? Colors.grey[600] : Colors.grey[400],
             fontWeight: FontWeight.normal,

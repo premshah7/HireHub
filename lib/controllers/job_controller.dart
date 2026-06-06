@@ -15,6 +15,9 @@ class JobController extends GetxController {
   // Bookmarks management
   final RxSet<String> bookmarkedJobSlugs = <String>{}.obs;
 
+  // Applied jobs tracking
+  final RxSet<String> appliedJobSlugs = <String>{}.obs;
+
   // Search query state
   final RxString searchQuery = ''.obs;
 
@@ -102,6 +105,16 @@ class JobController extends GetxController {
     return bookmarkedJobSlugs.contains(slug);
   }
 
+  /// Marks a job as applied
+  void applyForJob(String slug) {
+    appliedJobSlugs.add(slug);
+  }
+
+  /// Checks if a job has been applied to
+  bool isApplied(String slug) {
+    return appliedJobSlugs.contains(slug);
+  }
+
   /// Clears the current search query
   void clearSearch() {
     searchQuery.value = '';
@@ -117,7 +130,8 @@ class JobController extends GetxController {
         jobs.where((job) {
           final matchesTitle = job.title.toLowerCase().contains(query);
           final matchesCompany = job.companyName.toLowerCase().contains(query);
-          return matchesTitle || matchesCompany;
+          final matchesLocation = job.location.toLowerCase().contains(query);
+          return matchesTitle || matchesCompany || matchesLocation;
         }).toList(),
       );
     }

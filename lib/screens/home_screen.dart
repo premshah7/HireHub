@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/job_controller.dart';
 import 'job_dashboard_screen.dart';
 import 'wishlist_screen.dart';
+import 'my_jobs_screen.dart';
 import 'profile_screen.dart';
 
 class NavigationController extends GetxController {
@@ -21,6 +22,7 @@ class HomeScreen extends StatelessWidget {
 
     final List<Widget> pages = const [
       JobDashboardScreen(),
+      MyJobsScreen(),
       WishlistScreen(),
       ProfileScreen(),
     ];
@@ -44,6 +46,11 @@ class HomeScreen extends StatelessWidget {
                 icon: Icon(Icons.work_outline_rounded, size: 22, color: isDark ? Colors.grey[600] : Colors.grey[400]),
                 selectedIcon: Icon(Icons.work_rounded, size: 22, color: theme.colorScheme.primary),
                 label: 'Jobs',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.send_outlined, size: 22, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                selectedIcon: Icon(Icons.send_rounded, size: 22, color: theme.colorScheme.primary),
+                label: 'Applied',
               ),
               NavigationDestination(
                 icon: Icon(Icons.bookmark_border_rounded, size: 22, color: isDark ? Colors.grey[600] : Colors.grey[400]),

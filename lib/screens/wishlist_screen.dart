@@ -25,6 +25,21 @@ class WishlistScreen extends StatelessWidget {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              color: theme.colorScheme.primary,
+            ),
+            tooltip: 'Toggle Theme',
+            onPressed: () {
+              Get.changeThemeMode(
+                isDark ? ThemeMode.light : ThemeMode.dark,
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Obx(() {
         // Filter jobs that are bookmarked

@@ -5,15 +5,18 @@ import 'job_dashboard_screen.dart';
 import 'wishlist_screen.dart';
 import 'profile_screen.dart';
 
+class NavigationController extends GetxController {
+  final RxInt currentIndex = 0.obs;
+}
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller at the top level so it persists across tabs
+    // Initialize controllers at the top level so they persist across tabs
     Get.put(JobController());
-
-    final RxInt currentIndex = 0.obs;
+    final nav = Get.put(NavigationController());
     final theme = Theme.of(context);
 
     final List<Widget> pages = const [
@@ -24,12 +27,12 @@ class HomeScreen extends StatelessWidget {
 
     return Obx(() => Scaffold(
           body: IndexedStack(
-            index: currentIndex.value,
+            index: nav.currentIndex.value,
             children: pages,
           ),
           bottomNavigationBar: NavigationBar(
-            selectedIndex: currentIndex.value,
-            onDestinationSelected: (index) => currentIndex.value = index,
+            selectedIndex: nav.currentIndex.value,
+            onDestinationSelected: (index) => nav.currentIndex.value = index,
             backgroundColor: theme.brightness == Brightness.dark
                 ? const Color(0xFF1E293B)
                 : Colors.white,
